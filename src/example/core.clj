@@ -1,5 +1,7 @@
 (ns example.core
-  (:require [clojure.tools.cli :refer [parse-opts]]))
+  (:require [clojure.tools.cli :refer [parse-opts]]
+            [example.parse :refer [parse-point]]
+            [example.interpolation :refer [linear-interpolation]]))
 
 ; Флаги ввода
 (def flags
@@ -27,8 +29,13 @@
 
 ; Стартовая точка
 (defn -main [& args]
-  (let [{:keys [errors]} (parse-opts args flags)]
+  (let [{:keys [options errors]} (parse-opts args flags)
+        step (:step options)
+        linear? (:linear options)]
     (if errors
-      ((println errors)
-       (System/exit 1))
-      (println "All good"))))
+      (do (println errors)
+          (System/exit 1))
+      (do (println "Input:")
+          (
+            ;TODO: linear interpolation
+           )))))

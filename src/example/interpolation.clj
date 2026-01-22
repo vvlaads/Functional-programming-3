@@ -31,17 +31,23 @@
 
 ; Разделённые разности для метода Ньютона
 (defn divided-diff [points]
-  (let [n (count points)
-        y-list (map get-y points)]
-    (loop [i 1
-           table [y-list]]
-      (if (= i n)
-        (map first table)
-        (let [prev (last table)
-              next (map / (map - (rest prev) (butlast prev))
-                        (map - (map get-x (subvec points i n))
-                             (map get-x (subvec points 0 (- n i)))))]
-          (recur (inc i) (conj table next)))))))
+  (let [xs (map get-x points)
+        ys (map get-y points)]
+    (loop [level 0
+           column ys
+           result []]
+      (if (= level (dec (count points)))
+        (conj result (first column))
+        (let [next-column
+              (map (fn [f1 f0 x1 x0]
+                     (/ (- f1 f0) (- x1 x0)))
+                   (rest column)
+                   (butlast column)
+                   (drop (inc level) xs)
+                   xs)]
+          (recur (inc level)
+                 next-column
+                 (conj result (first column))))))))
 
 ; Формула метода Ньютона
 (defn newtone-y [points coeffs x]

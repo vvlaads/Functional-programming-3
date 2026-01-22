@@ -44,7 +44,7 @@
           (recur (inc i) (conj table next)))))))
 
 ; Формула метода Ньютона
-(defn newton-y [points coeffs x]
+(defn newtone-y [points coeffs x]
   (reduce
    (fn [sum [i c]]
      (+ sum (* c (reduce * 1 (map #(- x %) (map get-x (subvec points 0 i)))))))
@@ -60,5 +60,4 @@
           x1 (get-x (last window))
           x-list (generate-x last-x x1 step x0)
           coeffs (divided-diff window)]
-      (map (fn [x] [x (newton-y window coeffs x)]) x-list))))
-
+      (map (fn [x] [x (newtone-y window coeffs x)]) x-list))))

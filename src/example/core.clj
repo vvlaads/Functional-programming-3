@@ -1,7 +1,7 @@
 (ns example.core
   (:require [clojure.tools.cli :refer [parse-opts]]
             [example.parse :refer [parse-point]]
-            [example.interpolation :refer [linear-interpolation]]))
+            [example.interpolation :refer [get-x linear-interpolation newtone-interpolation]]))
 
 ; Флаги ввода
 (def flags
@@ -16,7 +16,7 @@
     "--linear"
     "Линейная интерполяция"]
 
-   ["-nwt"
+   ["-w"
     "--newtone"
     "Метод Ньютона"]
 
@@ -27,15 +27,44 @@
     :parse-fn #(Integer/parseInt %)
     :validate [#(> % 0) "Количество точек должно быть > 0"]]])
 
+; Вычислить линейной интерполяцией
+(defn process-linear [points last-x step]
+  (when (>= (count points) 2)
+    (linear-interpolation (subvec points (- (count points) 2)) last-x step)))
+
+; Вычислить методом Ньютона
+(defn process-newtone [points last-x step n]
+  (when (>= (count points) n)
+    (newtone-interpolation (subvec points (- (count points) n)) last-x step n)))
+
 ; Стартовая точка
 (defn -main [& args]
   (let [{:keys [options errors]} (parse-opts args flags)
         step (:step options)
-        linear? (:linear options)]
+        linear? (:linear options)
+        newtone? (:newtone options)
+        newtone-n (:newtone-count options)]
     (if errors
       (do (println errors)
           (System/exit 1))
-      (do (println "Input:")
-          (
-            ;TODO: linear interpolation
-           )))))
+      (loop [points []
+             last-lin-x nil
+             last-nwt-x nil]
+        (let [line (read-line)]
+          (if (nil? line)
+            (println "End of input")
+            (let [pt (parse-point line)
+                  points (conj points pt)
+                      ;; линейная интерполяция
+                  lin-out (when linear?
+                            (process-linear points last-lin-x step))
+                  last-lin-x (if lin-out (get-x (last lin-out)) last-lin-x)
+                      ;; метод Ньютона
+                  nwt-out (when newtone?
+                            (process-newtone points last-nwt-x step newtone-n))
+                  last-nwt-x (if nwt-out (get-x (last nwt-out)) last-nwt-x)]
+              (doseq [[x y] (or lin-out [])]
+                (println "linear:" x y))
+              (doseq [[x y] (or nwt-out [])]
+                (println "newtone:" x y))
+              (recur points last-lin-x last-nwt-x))))))))

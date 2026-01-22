@@ -16,16 +16,16 @@
     "--linear"
     "Линейная интерполяция"]
 
-   [nil
+   ["-nwt"
     "--newtone"
-    "Метод Ньютона"
-    :id :newtone
-    :default false]
+    "Метод Ньютона"]
 
    ["-n"
-    nil
+    "--newtone-count N"
     "Количество точек для метода Ньютона"
-    :id :newtone-count]])
+    :default 1
+    :parse-fn #(Integer/parseInt %)
+    :validate [#(> % 0) "Количество точек должно быть > 0"]]])
 
 ; Стартовая точка
 (defn -main [& args]

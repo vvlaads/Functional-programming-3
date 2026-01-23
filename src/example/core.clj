@@ -1,7 +1,7 @@
 (ns example.core
   (:require [clojure.tools.cli :refer [parse-opts]]
-            [example.parse :refer [parse-point]]
-            [example.interpolation :refer [get-x linear-interpolation newtone-interpolation]]))
+            [example.interpolation :refer [get-x linear-interpolation newtone-interpolation]]
+            [example.parse :refer [parse-point]]))
 
 ; Флаги ввода
 (def flags

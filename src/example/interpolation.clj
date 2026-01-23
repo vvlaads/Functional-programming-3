@@ -53,7 +53,9 @@
 (defn newtone-y [points coeffs x]
   (reduce
    (fn [sum [i c]]
-     (+ sum (* c (reduce * 1 (map #(- x %) (map get-x (subvec points 0 i)))))))
+     (let [xs (map get-x (subvec points 0 i))
+           term (reduce * 1 (map #(- x %) xs))]
+       (+ sum (* c term))))
    0
    (map-indexed vector coeffs)))
 

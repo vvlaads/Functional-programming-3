@@ -18,7 +18,10 @@
         y1 (:y (last points))
         x-list (generate-x last-x x1 step x0)]
     (if (not= x0 x1)
-      (map (fn [x] [x (linear-y x0 y0 x1 y1 x)]) x-list)
+      (map (fn [x]
+             {:x x
+              :y (linear-y x0 y0 x1 y1 x)})
+           x-list)
       nil)))
 
 ; Разделённые разности для метода Ньютона
@@ -60,4 +63,7 @@
           x1 (:x (last window))
           x-list (generate-x last-x x1 step x0)
           coeffs (divided-diff window)]
-      (map (fn [x] [x (newtone-y window coeffs x)]) x-list))))
+      (map (fn [x]
+             {:x x
+              :y (newtone-y window coeffs x)})
+           x-list))))

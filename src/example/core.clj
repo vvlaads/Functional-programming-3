@@ -63,8 +63,8 @@
                   nwt-out (when newtone?
                             (process-newtone points last-nwt-x step newtone-n))
                   last-nwt-x (if nwt-out (:x (last nwt-out)) last-nwt-x)]
-              (doseq [[x y] (or lin-out [])]
+              (doseq [{:keys [x y]} (or lin-out [])]
                 (println "linear:" x y))
-              (doseq [[x y] (or nwt-out [])]
+              (doseq [{:keys [x y]} (or nwt-out [])]
                 (println "newtone:" x y))
               (recur points last-lin-x last-nwt-x))))))))

@@ -21,16 +21,6 @@
     (is (equal-with-accuracy -1.3 x 1e-9))
     (is (equal-with-accuracy 1.23 y 1e-9))))
 
-; Проверка функции получения координат из точки
-(deftest test-get-x-y
-  (let [point [1 2]]
-    (is (= 1 (interp/get-x point)))
-    (is (= 2 (interp/get-y point))))
-
-  (let [point [-3 -5]]
-    (is (= -3 (interp/get-x point)))
-    (is (= -5 (interp/get-y point)))))
-
 ; Проверка генератора точек
 (deftest test-generate-x
   (is (= '(0 1 2 3)

@@ -1,6 +1,6 @@
 (ns example.core
   (:require [clojure.tools.cli :refer [parse-opts]]
-            [example.interpolation :refer [get-x linear-interpolation newtone-interpolation]]
+            [example.interpolation :refer [linear-interpolation newtone-interpolation]]
             [example.parse :refer [parse-point]]))
 
 ; Флаги ввода
@@ -58,11 +58,11 @@
                       ;; линейная интерполяция
                   lin-out (when linear?
                             (process-linear points last-lin-x step))
-                  last-lin-x (if lin-out (get-x (last lin-out)) last-lin-x)
+                  last-lin-x (if lin-out (:x (last lin-out)) last-lin-x)
                       ;; метод Ньютона
                   nwt-out (when newtone?
                             (process-newtone points last-nwt-x step newtone-n))
-                  last-nwt-x (if nwt-out (get-x (last nwt-out)) last-nwt-x)]
+                  last-nwt-x (if nwt-out (:x (last nwt-out)) last-nwt-x)]
               (doseq [[x y] (or lin-out [])]
                 (println "linear:" x y))
               (doseq [[x y] (or nwt-out [])]

@@ -4,5 +4,5 @@
 ; Преобразуем строку с координатами в пару чисел
 (defn parse-point [line]
   (let [[x y] (split line #"[;\s\t]+")]
-    [(Double/parseDouble x)
-     (Double/parseDouble y)]))
+    {:x (Double/parseDouble x)
+     :y (Double/parseDouble y)}))

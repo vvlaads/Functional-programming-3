@@ -10,18 +10,27 @@
 (defn linear-y [x0 y0 x1 y1 x]
   (+ y0 (* (- x x0) (/ (- y1 y0) (- x1 x0)))))
 
-; Линейная интерполяция
-(defn linear-interpolation [points last-x step]
-  (let [x0 (:x (first points))
-        y0 (:y (first points))
-        x1 (:x (last points))
-        y1 (:y (last points))
-        x-list (generate-x last-x x1 step x0)]
-    (when-not (= x0 x1)
-      (map (fn [x]
-             {:x x
-              :y (linear-y x0 y0 x1 y1 x)})
-           x-list))))
+; Фабрика алогиритма линейной интерполяция
+(defn linear-algorithm []
+  (let [last-x (atom nil)]
+    (fn [points step]
+      (when (>= (count points) 2)
+        (let [p0 (nth points (- (count points) 2))
+              p1 (last points)
+              x0 (:x p0)
+              y0 (:y p0)
+              x1 (:x p1)
+              y1 (:y p1)
+              xs (generate-x @last-x x1 step x0)]
+          (when-not (= x0 x1)
+            (let [result
+                  (map (fn [x]
+                         {:x x
+                          :y (linear-y x0 y0 x1 y1 x)})
+                       xs)]
+              (when (seq result)
+                (reset! last-x (:x (last result))))
+              result)))))))
 
 ; Разделённые разности для метода Ньютона
 (defn divided-diff [points]
@@ -53,15 +62,21 @@
    0
    (map-indexed vector coeffs)))
 
-; Интерполяция методом Ньютона
-(defn newtone-interpolation [points last-x step n]
-  (when (>= (count points) n)
-    (let [window (subvec points 0 n)
-          x0 (:x (first window))
-          x1 (:x (last window))
-          x-list (generate-x last-x x1 step x0)
-          coeffs (divided-diff window)]
-      (map (fn [x]
-             {:x x
-              :y (newtone-y window coeffs x)})
-           x-list))))
+; Фабрика алгоритма интепроляции методом Ньютона
+(defn newtone-algorithm [n]
+  (let [last-x (atom nil)]
+    (fn [points step]
+      (when (>= (count points) n)
+        (let [window (subvec points (- (count points) n))
+              x0 (:x (first window))
+              x1 (:x (last window))
+              xs (generate-x @last-x x1 step x0)
+              coeffs (divided-diff window)
+              result
+              (map (fn [x]
+                     {:x x
+                      :y (newtone-y window coeffs x)})
+                   xs)]
+          (when (seq result)
+            (reset! last-x (:x (last result))))
+          result)))))

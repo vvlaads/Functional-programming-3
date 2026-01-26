@@ -37,18 +37,6 @@
                            (interp/linear-y 0 0 4 5 2)
                            1e-9)))
 
-; Проверка линейной интерполяции
-(deftest test-linear-interpolation
-  (let [points (mapv (fn [x] {:x x
-                              :y x}) [0 10])
-        res (interp/linear-interpolation points nil 2)
-        expected (mapv (fn [x] {:x x
-                                :y x}) [0 2 4 6 8])]
-    (is (= (count expected) (count res)))
-    (doseq [[e r] (map vector expected res)]
-      (is (= (:x e) (:x r)))
-      (is (equal-with-accuracy (:y e) (:y r) 1e-9)))))
-
 ; Проверка разделенных разностей
 (deftest test-divided-diff
   (let [points (mapv (fn [x] {:x x
@@ -67,11 +55,25 @@
         y (interp/newtone-y points coeffs 1.5)]
     (is (equal-with-accuracy 1.5 y 1e-9))))
 
-; Проверка метода Ньютона
-(deftest test-newtone-interpolation
+; Проверка линейной интерполяции через замыкание
+(deftest test-linear-algorithm
+  (let [points (mapv (fn [x] {:x x
+                              :y x}) [0 10])
+        algo (interp/linear-algorithm)
+        res (algo points 2)  ;; вызываем замыкание с шагом 2
+        expected (mapv (fn [x] {:x x
+                                :y x}) [0 2 4 6 8])]
+    (is (= (count expected) (count res)))
+    (doseq [[e r] (map vector expected res)]
+      (is (= (:x e) (:x r)))
+      (is (equal-with-accuracy (:y e) (:y r) 1e-9)))))
+
+; Проверка метода Ньютона через замыкание
+(deftest test-newtone-algorithm
   (let [points (mapv (fn [x] {:x x
                               :y x}) [0 1 2])
-        res (interp/newtone-interpolation points nil 1 3)]
+        algo (interp/newtone-algorithm 3) ;; создаём замыкание с окном 3 точек
+        res (algo points 1)]              ;; вызываем замыкание с шагом 1
     (is (= 2 (count res)))
     (let [[{x1 :x
             y1 :y}

@@ -73,16 +73,27 @@ o o o o o o . . x x x
 (defn linear-y [x0 y0 x1 y1 x]
   (+ y0 (* (- x x0) (/ (- y1 y0) (- x1 x0)))))
 
-; Линейная интерполяция
-(defn linear-interpolation [points last-x step]
-  (let [x0 (get-x (first points))
-        y0 (get-y (first points))
-        x1 (get-x (last points))
-        y1 (get-y (last points))
-        x-list (generate-x last-x x1 step x0)]
-    (if (not= x0 x1)
-      (map (fn [x] [x (linear-y x0 y0 x1 y1 x)]) x-list)
-      nil)))
+; Фабрика алогиритма линейной интерполяция
+(defn linear-algorithm []
+  (let [last-x (atom nil)]
+    (fn [points step]
+      (when (>= (count points) 2)
+        (let [p0 (nth points (- (count points) 2))
+              p1 (last points)
+              x0 (:x p0)
+              y0 (:y p0)
+              x1 (:x p1)
+              y1 (:y p1)
+              xs (generate-x @last-x x1 step x0)]
+          (when-not (= x0 x1)
+            (let [result
+                  (map (fn [x]
+                         {:x x
+                          :y (linear-y x0 y0 x1 y1 x)})
+                       xs)]
+              (when (seq result)
+                (reset! last-x (:x (last result))))
+              result)))))))
 ```
 
 ### Алгоритм метода Ньютона:
@@ -117,40 +128,56 @@ o o o o o o . . x x x
    0
    (map-indexed vector coeffs)))
 
-; Интерполяция методом Ньютона
-(defn newtone-interpolation [points last-x step n]
-  (if (< (count points) n)
-    nil
-    (let [window (subvec points 0 n)
-          x0 (get-x (first window))
-          x1 (get-x (last window))
-          x-list (generate-x last-x x1 step x0)
-          coeffs (divided-diff window)]
-      (map (fn [x] [x (newtone-y window coeffs x)]) x-list))))
+; Фабрика алгоритма интепроляции методом Ньютона
+(defn newtone-algorithm [n]
+  (let [last-x (atom nil)]
+    (fn [points step]
+      (when (>= (count points) n)
+        (let [window (subvec points (- (count points) n))
+              x0 (:x (first window))
+              x1 (:x (last window))
+              xs (generate-x @last-x x1 step x0)
+              coeffs (divided-diff window)
+              result
+              (map (fn [x]
+                     {:x x
+                      :y (newtone-y window coeffs x)})
+                   xs)]
+          (when (seq result)
+            (reset! last-x (:x (last result))))
+          result)))))
 ```
 
 ## Тестирование
 ### Тестирование линейной интерполяции:
 ```clojure
-; Проверка линейной интерполяции
-(deftest test-linear-interpolation
-  (let [points [[0 0] [10 10]]
-        res (interp/linear-interpolation points nil 2)
-        expected [[0 0] [2 2] [4 4] [6 6] [8 8]]]
+; Проверка линейной интерполяции через замыкание
+(deftest test-linear-algorithm
+  (let [points (mapv (fn [x] {:x x
+                              :y x}) [0 10])
+        algo (interp/linear-algorithm)
+        res (algo points 2)  ;; вызываем замыкание с шагом 2
+        expected (mapv (fn [x] {:x x
+                                :y x}) [0 2 4 6 8])]
     (is (= (count expected) (count res)))
-    (doseq [[[ex ey] [rx ry]] (map vector expected res)]
-      (is (= ex rx))
-      (is (equal-with-accuracy ey ry 1e-9)))))
+    (doseq [[e r] (map vector expected res)]
+      (is (= (:x e) (:x r)))
+      (is (equal-with-accuracy (:y e) (:y r) 1e-9)))))
 ```
 
 ### Тестирование метода Ньютона:
 ```clojure
-; Проверка метода Ньютона
-(deftest test-newtone-interpolation
-  (let [points [[0 0] [1 1] [2 2]]
-        res (interp/newtone-interpolation points nil 1 3)]
+; Проверка метода Ньютона через замыкание
+(deftest test-newtone-algorithm
+  (let [points (mapv (fn [x] {:x x
+                              :y x}) [0 1 2])
+        algo (interp/newtone-algorithm 3) ;; создаём замыкание с окном 3 точек
+        res (algo points 1)]              ;; вызываем замыкание с шагом 1
     (is (= 2 (count res)))
-    (let [[[x1 y1] [x2 y2]] res]
+    (let [[{x1 :x
+            y1 :y}
+           {x2 :x
+            y2 :y}] res]
       (is (= 0 x1))
       (is (= 1 x2))
       (is (equal-with-accuracy 0 y1 1e-9))
@@ -224,3 +251,4 @@ o o o o o o . . x x x
 - Управляющие конструкции `when` и `do` — использованы для организации условного выполнения кода и группировки выражений.
 - Функции работы с коллекциями (`first`, `last`, `rest`, `range`) — применены для обработки последовательностей данных.
 - Функция `subvec` — использована для работы с подмножествами векторов без копирования данных.
+- Замыкания (closures) и атомы (`atom`) — применены для инкапсуляции изменяемого состояния внутри функций интерполяции, что позволило хранить информацию о последней обработанной координате `x` и обеспечило расширяемость алгоритмов без изменения внешнего кода.

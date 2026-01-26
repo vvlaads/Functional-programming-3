@@ -17,12 +17,11 @@
         x1 (:x (last points))
         y1 (:y (last points))
         x-list (generate-x last-x x1 step x0)]
-    (if (not= x0 x1)
+    (when-not (= x0 x1)
       (map (fn [x]
              {:x x
               :y (linear-y x0 y0 x1 y1 x)})
-           x-list)
-      nil)))
+           x-list))))
 
 ; Разделённые разности для метода Ньютона
 (defn divided-diff [points]
@@ -56,8 +55,7 @@
 
 ; Интерполяция методом Ньютона
 (defn newtone-interpolation [points last-x step n]
-  (if (< (count points) n)
-    nil
+  (when (>= (count points) n)
     (let [window (subvec points 0 n)
           x0 (:x (first window))
           x1 (:x (last window))
